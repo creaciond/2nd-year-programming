@@ -39,10 +39,16 @@ def getText(response):
     regBlock = re.compile('<p>[А-ЯЁ].*?</p>')
     # search for text
     firstline = regFirst.findall(response)
-    text = regBlock.findall(response)
+    parapraphs = regBlock.findall(response)
     # clean and print the text
     firstline = cleanLines(firstline)
-    text = cleanLines(text)
+    parapraphs = cleanLines(parapraphs)
+    text = []
+    for line in firstline:
+    	text.append(line)
+    for line in parapraphs:
+    	text.append(line)
+    return text
 
 
 def getHeader(response):
@@ -60,8 +66,7 @@ def getDate(response):
         if re.search(regDate, line):
             date = regDate.group(1)
     # edit format
-    months = {'января':'01', 'февраля':'02', 'марта':'03', 'апреля':'04', 'мая':'05', 'июня':'06',
-              'июля':'07', 'августа':'08', 'сентября':'09', 'октября':'10', 'ноября':'11', 'декабря':'12'}
+    months = {'января':'01', 'февраля':'02', 'марта':'03', 'апреля':'04', 'мая':'05', 'июня':'06', 'июля':'07', 'августа':'08', 'сентября':'09', 'октября':'10', 'ноября':'11', 'декабря':'12'}
     dateParts = date.split(' ')
     for month in months:
         if month in dateParts[1]:
@@ -72,6 +77,12 @@ def getDate(response):
     return newdate
 
 
+def findPath(date):
+	dateParts = date.split('.')
+	# 0 - date, 1 - month, 2 - year
+	return dateParts[1], dateparts[2]
+
+
 def getAuthor(response):
     # regex
     regAuthor = re.compile('<div><span class="article_about">Текст:</span><span class="author_fio">(.*)?</span></div>')
@@ -79,6 +90,10 @@ def getAuthor(response):
     for line in response:
         if re.search(regAuthor, line):
             author = regAuthor.group(1)
+            authorParts = author.split(' ')
+            for part in authorParts:
+            	part = part.title()
+            author = ' '.join(authorParts)
     return author
 
 
@@ -103,56 +118,92 @@ def getAddresses():
                 print(normUrl)
 
 
-def getAddresses(pageNum):
-    mainUrl = 'http://polkrug.ru/news?p=' + pageNum
-    print(mainUrl)
-    response = getPages(mainUrl)
-    urls = []
-    regLink = re.compile('<h3>\r\n.*?\"(.*)?\"')
-    for line in response:
-        if re.search(regLink, line):
-            articleUrl = regLink.group(1)
-            normUrl = 'http://polkrug\.ru' + articleUrl
-            print(normUrl)
-            urls.append(normUrl)
-    return urls
+# def getAddresses(pageNum):
+#     mainUrl = 'http://polkrug.ru/news?p=' + pageNum
+#     print(mainUrl)
+#     response = getPages(mainUrl)
+#     urls = []
+#     regLink = re.compile('<h3>\r\n.*?\"(.*)?\"')
+#     for line in response:
+#         if re.search(regLink, line):
+#             articleUrl = regLink.group(1)
+#             normUrl = 'http://polkrug\.ru' + articleUrl
+#             print(normUrl)
+#             urls.append(normUrl)
+#     return urls
 
 
-def parsePage():
-    pageUrl = 'http://polkrug.ru/news/gorod/sobytie/5265-shagaem-po-strane'
-    response = getPage(pageUrl)
-    text = ''
-    text += '@au ' + getAuthor(response) + '\r\n'
-    text += '@ti ' + getHeader(response) + '\r\n'
-    date = getDate(response)
-    text += '@da ' + date + '\r\n'
-    text += '@topic ' + getTopic(response) + '\r\n'
-    text += '@url ' + pageUrl + '\r\n'
-    text.append(getText(response))
-    # decide where to put the text
-    dateParts = date.split(' ') 
-    return text, dateParts[1], dateParts[2]
+def getTitle(pageUrl):
+	response = getPage(pageUrl)
+	title = ''
+    title += '@au ' + getAuthor(response) + '\r\n'
+    title += '@ti ' + getHeader(response) + '\r\n'
+    title += '@da ' + getDate(response) + '\r\n'
+    title += '@topic ' + getTopic(response) + '\r\n'
+    title += '@url ' + pageUrl + '\r\n\r\n'
 
 
-def savePage(text, month, year):
+# def parsePage(pageUrl):
+#     response = getPage(pageUrl)
+#     text = ''
+#     for line in response:
+#     	text += (line + '\r\n')
+#     # decide where to put the text
+#     date = getDate(response)
+#     dateParts = date.split(' ') 
+#     return text, dateParts[1], dateParts[2]	
+
+
+def savePage(text, title, month, year):
+    fullText = title + text
     directory = 'plain' + os.sep + year + os.sep + month
     if not os.path.exists(directory):
 		os.makedirs(directory)
 	num = len(os.listdir(directory)) + 1
 	filename = directory + 'article' + str(num) + '.txt'
 	file = open(filename, 'w', encoding='utf-8')
-	file.write(text)
+	file.write(fullText)
 	file.close()
 
 
+# def stemPage(pageAddress):
+# 	mystem = '/Users/dariamaximova/Desktop/HSE/programming/hse-coding-2/homework/mystem'
+# 	sourceDir = 'plain' + os.sep + pageAddress
+# 	# mystem-plain
+# 	goalDir = '.' + os.sep + 'mystem-plain' + 
+# 	os.system(mystem + ' ' + pageAddress + ' ')
+
+
+def mystemPlain(source, year, month):
+	mystem = '//Users//dariamaximova//Desktop//HSE//programming//hse-coding-2//homework//mystem'
+	sourcePath = ' .' + os.sep + 'plain' + os.sep + year + os.sep + month + os.sep + source
+	goalPath = ' .' + os.sep + 'mystem-plain' + os.sep + year + os.sep + month + os.sep + source
+	os.system(mystem + sourcePath + goalPath + ' -cnid --eng-gr -format text')
+	
+
+def mystemXML(source, year, month):
+	mystem = '//Users//dariamaximova//Desktop//HSE//programming//hse-coding-2//homework//mystem'
+	sourcePath = ' .' + os.sep + 'plain' + os.sep + year + os.sep + month + os.sep + source
+	goalPath = ' .' + os.sep + 'mystem-plain' + os.sep + year + os.sep + month + os.sep + source
+	os.system(mystem + sourcePath + goalPath + ' -cnid --eng-gr -format xml')
+	
+
 def main():
     for i in range(1,300):
-        pageUrls = getAddresses(str(i))
+#        pageUrls = getAddresses(str(i))
+		pageUrls = getAddresses
         for eachUrl in pageUrls:
-            text, month, year = parsePage(eachUrl)
-            savePage(text, month, year)
-            
-
+			# get title
+        	title = getTitle(pageUrl)
+			# get text
+			text = getText(pageUrl)
+			# assemble plain
+			month, year = findPath(getDate(pageUrl))
+			savePage(text, '', month, year)
+			# parse via mystem — plain, add title, save
+			mystemPlain()
+			# parse via mystem — xml, add title, save
+			savePage(text, title, month, year)
 
 if __name__ == '__main__':
     main()
