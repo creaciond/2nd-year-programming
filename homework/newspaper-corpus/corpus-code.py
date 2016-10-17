@@ -78,10 +78,6 @@ def getAuthor(response):
     resAuthor = re.search(regAuthor, response)
     if resAuthor:
         author = resAuthor.group(1)
-        authorParts = author.split(' ')
-        for part in authorParts:
-            part = part[0] + part[1:].lower()
-        author = ' '.join(authorParts)
     return author
 
 
@@ -121,20 +117,19 @@ def getTopic(response):
 
         
 #             == web crowler ==
-def getAddresses():
+def getAddresses(num):
     urls = []
-    for i in range(1,2):
-        # time.sleep(2)
-        mainUrl = 'http://polkrug.ru/news?p=' + str(i)
-        response = getPage(mainUrl)
-        lines = response.split('>')
-        regLink = re.compile('a class=\"more_link\" href=\"(.*?)\"')
-        for line in lines:
-            hasLink = re.search(regLink, line)
-            if hasLink:
-                articleUrl = hasLink.group(1)
-                normUrl = 'http://polkrug.ru' + articleUrl
-                urls.append(normUrl)
+    time.sleep(2)
+    mainUrl = 'http://polkrug.ru/news?p=' + str(num)
+    response = getPage(mainUrl)
+    lines = response.split('>')
+    regLink = re.compile('a class=\"more_link\" href=\"(.*?)\"')
+    for line in lines:
+        hasLink = re.search(regLink, line)
+        if hasLink:
+            articleUrl = hasLink.group(1)
+            normUrl = 'http://polkrug.ru' + articleUrl
+            urls.append(normUrl)
     return urls
 
 
@@ -199,26 +194,26 @@ def meta(path, author, date, url, year):
 
 
 def main():
-    pageUrls = getAddresses()
-    i = 1
-    for pageUrl in pageUrls:
-        page = getPage(pageUrl)
-        text = getText(page)
-        date = getDate(page)
-        auth = getAuthor(page)
-        month, year = findPath(date)
-        title = getTitle(pageUrl)
-        # first save: no title, for parsing via mystem
-        pageFile = savePage(text, '', month, year)
-        pageFolder = year + os.sep + month
-        # parsing
-        stemPage(pageFolder, pageFile)
-        # writing metadata
-        plainPath = pageFolder + os.sep + pageFile
-        meta(plainPath, auth, date, pageUrl, year)
-        print(i)
-        i += 1
-        
+    count = 1
+    for i in range(1,21):
+        pageUrls = getAddresses(i)
+        for pageUrl in pageUrls:
+            page = getPage(pageUrl)
+            text = getText(page)
+            date = getDate(page)
+            auth = getAuthor(page)
+            month, year = findPath(date)
+            title = getTitle(pageUrl)
+            # first save: no title, for parsing via mystem
+            pageFile = savePage(text, '', month, year)
+            pageFolder = year + os.sep + month
+            # parsing
+            stemPage(pageFolder, pageFile)
+            # writing metadata
+            plainPath = pageFolder + os.sep + pageFile
+            meta(plainPath, auth, date, pageUrl, year)
+            # second save: title
+            pageFile = savePage(text, title, month, year)        
 
 
 if __name__ == '__main__':
