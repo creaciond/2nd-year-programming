@@ -17,16 +17,6 @@ def getPage(pageUrl):
 
 #             == Text processing ==
 
-#def deleteTags(lines):
-    #regTag = re.compile('<.*?>')
-    #regSpace = re.compile('\s{2,}')
-    #newLines = []
-    #for line in lines:
-        #line = regTag.sub('', line)
-        #line = regSpace.sub('', line)
-        #newLines.append(line)
-    #return newLines
-
 
 def cleanLines(lines):
     regTag = re.compile('<.*?>')
@@ -51,11 +41,10 @@ def getText(response):
     # clean and print the text
     firstline = cleanLines(firstline)
     paragraphs = cleanLines(paragraphs)
-    text = []
-    text.append(firstline)
     text1 = ''
+    for line in firstline:
+        text1 = text1 + line + '\r\n'
     for line in paragraphs:
-        text.append(line)
         text1 = text1 + line + '\r\n'
     return text1
 
@@ -84,7 +73,7 @@ def getAuthor(response):
 def getDate(response):
     date = ''
     # regex
-    regDate = 'class=\"news_date\">(.*?)<'
+    regDate = re.compile('<div class=\"news_date\">(.*?)</div>')
     # search
     resDate = re.search(regDate, response)
     if resDate:
@@ -195,9 +184,10 @@ def meta(path, author, date, url, year):
 
 def main():
     count = 1
-    for i in range(1,21):
+    for i in range(1, 11):
         pageUrls = getAddresses(i)
         for pageUrl in pageUrls:
+            print(pageUrl)
             page = getPage(pageUrl)
             text = getText(page)
             date = getDate(page)
