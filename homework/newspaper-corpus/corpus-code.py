@@ -146,13 +146,25 @@ def savePage(textar, title, month, year):
     for line in textar:
         file.write(line)
     file.close()
+
+
+def whateverSave(textar, month, year):
+    directory = '.' + os.sep + 'plain1' + os.sep + year + os.sep + month
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    num = len(os.listdir(directory)) + 1
+    filename = directory + os.sep + 'article' + str(num) + '.txt'
+    file = open(filename, 'w', encoding='utf-8')
+    for line in textar:
+        file.write(line)
+    file.close()
     return 'article' + str(num) + '.txt'
 
 
 #             == mystem parsing==
 def stemPage(pageFolder, pageFilename):
     mystem = '/Users/dariamaximova/Desktop/HSE/programming/hse-coding-2/homework/mystem'
-    sourceDir = '.' + os.sep + 'plain' + os.sep + pageFolder + os.sep + pageFilename
+    sourceDir = '.' + os.sep + 'plain1' + os.sep + pageFolder + os.sep + pageFilename
     goalDir = '.' + os.sep + 'mystem-plain' + os.sep + pageFolder
     if not os.path.exists(goalDir):
         os.makedirs(goalDir)
@@ -187,7 +199,6 @@ def main():
     for i in range(1, 11):
         pageUrls = getAddresses(i)
         for pageUrl in pageUrls:
-            print(pageUrl)
             page = getPage(pageUrl)
             text = getText(page)
             date = getDate(page)
@@ -195,15 +206,17 @@ def main():
             month, year = findPath(date)
             title = getTitle(pageUrl)
             # first save: no title, for parsing via mystem
-            pageFile = savePage(text, '', month, year)
+            pageFile = whateverSave(text, month, year)
             pageFolder = year + os.sep + month
             # parsing
             stemPage(pageFolder, pageFile)
             # writing metadata
             plainPath = pageFolder + os.sep + pageFile
             meta(plainPath, auth, date, pageUrl, year)
-            # second save: title
-            pageFile = savePage(text, title, month, year)        
+            # second save: with title
+            savePage(text, title, month, year)
+            print(count)
+            count += 1
 
 
 if __name__ == '__main__':
