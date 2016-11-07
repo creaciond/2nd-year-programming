@@ -196,26 +196,29 @@ def meta(path, author, date, url, year):
 
 def main():
     count = 1
-    for i in range(1, 11):
+    for i in range(1, 526):
         pageUrls = getAddresses(i)
         for pageUrl in pageUrls:
-            page = getPage(pageUrl)
-            text = getText(page)
-            date = getDate(page)
-            auth = getAuthor(page)
-            month, year = findPath(date)
-            title = getTitle(pageUrl)
-            # first save: no title, for parsing via mystem
-            pageFile = whateverSave(text, month, year)
-            pageFolder = year + os.sep + month
-            # parsing
-            stemPage(pageFolder, pageFile)
-            # writing metadata
-            plainPath = pageFolder + os.sep + pageFile
-            meta(plainPath, auth, date, pageUrl, year)
-            # second save: with title
-            savePage(text, title, month, year)
-            print(count)
+            try:
+                page = getPage(pageUrl)
+                text = getText(page)
+                date = getDate(page)
+                auth = getAuthor(page)
+                month, year = findPath(date)
+                title = getTitle(pageUrl)
+                # first save: no title, for parsing via mystem
+                pageFile = whateverSave(text, month, year)
+                pageFolder = year + os.sep + month
+                # parsing
+                stemPage(pageFolder, pageFile)
+                # writing metadata
+                plainPath = pageFolder + os.sep + pageFile
+                meta(plainPath, auth, date, pageUrl, year)
+                # second save: with title
+                savePage(text, title, month, year)
+                print(count)
+            except:
+                print('error '+pageUrl)
             count += 1
 
 
