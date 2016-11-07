@@ -1,0 +1,13 @@
+<html>
+	<head>
+		<title>Корпус</title>
+	</head>
+	<body>
+		<h1>Результаты</h1>
+		<ol>
+		{% for sent in sents %}
+			<li> {{ sent | safe }} </li>
+		{% endfor %}
+		</ol>
+	</body>
+</html>
