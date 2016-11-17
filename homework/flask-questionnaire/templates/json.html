@@ -1,34 +1,15 @@
 <html>
 	<head>
 		<title>JSON анкет</title>
+		<style type="text/css">
+            tab1 { padding-left: 4em; }
+        </style>
 	</head>
 	<body>
 		{% for jsonItem in jsonar %}
-		{
-			age: {{ jsonItem[age] }},
-			region_born: {{ jsonItem[region_born] }},
-			region_now: {{ jsonItem[region_now] }},
-			Uliana: {{ jsonItem[Uliana] }}, 
-			Oleg: {{ jsonItem[Oleg] }},
-			Vasilisa: {{ jsonItem[Vasilisa] }},
-			Georgij: {{ jsonItem[Georgij] }},
-			Alyona: {{ jsonItem[Alyona] }},
-			Nikita: {{ jsonItem[Nikita] }},
-			Kristina: {{ jsonItem[Kristina] }},
-			Lev: {{ jsonItem[Lev] }},
-			Alisa: {{ jsonItem[Alisa] }},
-			Anna: {{ jsonItem[Anna] }},
-			Alexander: {{ jsonItem[Alexander] }},
-			Larisa: {{ jsonItem[Larisa] }},
-			Ekaterina: {{ jsonItem[Ekaterina] }},
-			Regina: {{ jsonItem[Regina] }},
-			Semyon: {{ jsonItem[Semyon] }},
-			Polina: {{ jsonItem[Polina] }},
-			Aleksej: {{ jsonItem[Aleksej] }},
-			Alina: {{ jsonItem[Alina] }},
-			Mihail: {{ jsonItem[Mihail] }},
-			Anastasia: {{ jsonItem[Anastasia] }}
-		}
+		<p>{<br />
+			{{ jsonItem | safe }}
+		}</p>
 		{% endfor %}
 	</body>
 </html>
