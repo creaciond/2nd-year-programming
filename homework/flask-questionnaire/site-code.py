@@ -39,6 +39,7 @@ def results():
 	namesTransl = {'Ульяна':'Uliana','Олег':'Oleg','Василиса':'Vasilisa','Георгий':'Georgij','Алёна':'Alyona','Никита':'Nikita','Кристина':'Kristina','Лев':'Lev','Алиса':'Alisa','Анна':'Anna','Александр':'Alexander','Лариса':'Larisa','Екатерина':'Ekaterina','Регина':'Regina','Семён':'Semyon','Полина':'Polina','Алексей':'Aleksej','Алина':'Alina','Михаил':'Mihail','Анастасия':'Anastasia'}
 	# просто имена по порядку
 	dimNames = ['Uliana', 'Oleg', 'Vasilisa', 'Georgij', 'Alyona', 'Nikita', 'Kristina', 'Lev', 'Alisa', 'Anna', 'Alexander', 'Larisa', 'Ekaterina', 'Regina', 'Semyon', 'Polina', 'Aleksej', 'Alina', 'Mihail', 'Anastasia']
+	# поиск по имени
 	if request.args.get('searchName'):
 		result = []
 		searchName = namesTransl[request.args.get('searchName')]
@@ -46,7 +47,30 @@ def results():
 		for entry in data:
 			if entry[2] == '':
 				entry[2] = entry[1]
-			result.append([entry[0], entry[1], entry[2], entry[index]])
+			# спецификация по возрасту
+			if request.args.get('searchAge'):
+				if request.args.get('ageBefore') == 'on':
+					if int(entry[0]) <= int(request.args.get('searchAge')):
+						result.append([entry[0], entry[1], entry[2], entry[index]])
+				if request.args.get('ageAfter') == 'on':
+					if int(entry[0]) >= int(request.args.get('searchAge')):
+						result.append([entry[0], entry[1], entry[2], entry[index]])
+				if request.args.get('ageEqual') == 'on':
+					if int(entry[0]) == int(request.args.get('searchAge')):
+						result.append([entry[0], entry[1], entry[2], entry[index]])
+			# спецификация по региону
+			if request.args.get('searchRegion'):
+				if entry[1] == request.args.get('searchRegion') or entry[2] == request.args.get('searchRegion'):
+					result.append([entry[0], entry[1], entry[2], entry[index]])
+	# поиск по диминутиву
+	if request.args.get('searchForm'):
+		result = []
+		for entry in data:
+			if entry[2] == '':
+				entry[2] = entry[1]
+			for i in range(3, 23):
+				if entry[i] == request.args.get('searchForm'):
+					result.append([entry[0], entry[1], entry[2], entry[i]])
 	return render_template('results.html', resultAr=result)
 		
 
@@ -115,11 +139,11 @@ def stats():
 	regionsList = ', '.join(regions.keys())
 	# процент заполнивших регионов
 	regionsPercent = round(len(regions)/85, 2)
-	# имена с наибольшей вариативностью
-	mostVariants = '(здесь будут какие-то имена [помогите придумать, пжлст!])'
 	# в среднем вариантов на имя
 	varCount = 0
+	# имена с одним сокращением
 	sameNamesAr = []
+	# наибольшая вариативность
 	mostVarsAr = []
 	for name in diminutives:
 		if len(diminutives[name]) >= 2:
