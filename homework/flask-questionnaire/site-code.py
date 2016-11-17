@@ -7,19 +7,6 @@ from flask import render_template, request, redirect, url_for
 app = Flask(__name__)
 
 
-# это очень плохо, мне очень стыдно, но пока что версия без глобальных переменных не выходит :(
-totalCount = 0
-movedCount = 0
-totalAge = 0
-avAge = 0
-regionCount = 0
-regions = {} 
-diminutives = {"Uliana":[], "Oleg":[], "Vasilisa":[], "Georgij":[], "Alyona":[], 
-"Nikita":[], "Kristina":[], "Lev":[], "Alisa":[], "Anna":[], "Alexander":[], 
-"Larisa":[], "Ekaterina":[], "Regina":[], "Semyon":[], "Polina":[], "Aleksej":[], 
-"Alina":[], "Mihail":[], "Anastasia":[]}
-
-
 @app.route('/')
 def index():
 	if request.args:
@@ -40,10 +27,34 @@ def getjson():
 	return render_template('json.html', jsonar=jsonAr)
 
 
+@app.route('/result')
+def results():
+	# загружаем результаты из анкет
+	data = []
+	with open('data.txt','r', encoding='utf-8') as f:
+		for line in f:
+			lineData = line.split(',')
+			data.append(lineData)
+	# имена + нормальное написание
+	namesTransl = {'Ульяна':'Uliana','Олег':'Oleg','Василиса':'Vasilisa','Георгий':'Georgij','Алёна':'Alyona','Никита':'Nikita','Кристина':'Kristina','Лев':'Lev','Алиса':'Alisa','Анна':'Anna','Александр':'Alexander','Лариса':'Larisa','Екатерина':'Ekaterina','Регина':'Regina','Семён':'Semyon','Полина':'Polina','Алексей':'Aleksej','Алина':'Alina','Михаил':'Mihail','Анастасия':'Anastasia'}
+	# просто имена по порядку
+	dimNames = ['Uliana', 'Oleg', 'Vasilisa', 'Georgij', 'Alyona', 'Nikita', 'Kristina', 'Lev', 'Alisa', 'Anna', 'Alexander', 'Larisa', 'Ekaterina', 'Regina', 'Semyon', 'Polina', 'Aleksej', 'Alina', 'Mihail', 'Anastasia']
+	if request.args.get('searchName'):
+		result = []
+		searchName = namesTransl[request.args.get('searchName')]
+		index = dimNames.index(searchName, 0, 22) + 3
+		for entry in data:
+			if entry[2] == '':
+				entry[2] = entry[1]
+			result.append([entry[0], entry[1], entry[2], entry[index]])
+	return render_template('results.html', resultAr=result)
+		
+
+
 @app.route('/search')
 def search():
 	return render_template('search.html')
-	# сюда надо прикрутить поиск
+
 
 
 @app.route('/statistics')
@@ -57,7 +68,9 @@ def stats():
 	regions = {} 
 	# словарь с вариантами
 	diminutives = {'Uliana':[], 'Oleg':[], 'Vasilisa':[], 'Georgij':[], 'Alyona':[], 'Nikita':[], 'Kristina':[], 'Lev':[], 'Alisa':[], 'Anna':[], 'Alexander':[], 'Larisa':[], 'Ekaterina':[], 'Regina':[], 'Semyon':[], 'Polina':[], 'Aleksej':[], 'Alina':[], 'Mihail':[], 'Anastasia':[]}
+	# просто имена
 	dimNames = ['Uliana', 'Oleg', 'Vasilisa', 'Georgij', 'Alyona', 'Nikita', 'Kristina', 'Lev', 'Alisa', 'Anna', 'Alexander', 'Larisa', 'Ekaterina', 'Regina', 'Semyon', 'Polina', 'Aleksej', 'Alina', 'Mihail', 'Anastasia']
+	# имена + нормальное написание
 	namesTransl = {'Uliana':'Ульяна', 'Oleg':'Олег', 'Vasilisa':'Василиса', 'Georgij':'Георгий', 'Alyona':'Алёна', 'Nikita':'Никита', 'Kristina':'Кристина', 'Lev':'Лев', 'Alisa':'Алиса', 'Anna':'Анна', 'Alexander':'Александр', 'Larisa':'Лариса', 'Ekaterina':'Екатерина', 'Regina':'Регина', 'Semyon':'Семён', 'Polina':'Полина', 'Aleksej':'Алексей', 'Alina':'Алина', 'Mihail':'Михаил', 'Anastasia':'Анастасия'}
 	with open('data.txt','r', encoding='utf-8') as f:
 		for line in f:
