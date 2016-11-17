@@ -131,7 +131,7 @@ def stats():
 	return render_template('stats.html', totalCount=totalCount,
                                movedCount=movedCount,
                                avAge=avAge,
-                               regionCount=regionCount,
+                               regionCount=len(regions),
                                mostRegions=mostReg,
                                rareRegions=rareReg,
                                regionsList=regionsList,
