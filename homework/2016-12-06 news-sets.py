@@ -1,45 +1,48 @@
 import urllib.request
 import re
 import html
-import codecs
 
 
 def getPage(pageUrl):
     # try to access the page
-    user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
-    req = urllib.request.Request(pageUrl, headers={'User-Agent': user_agent})
+    # user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'
+    # req = urllib.request.Request(pageUrl, headers={'User-Agent': user_agent})
+    req = urllib.request.Request(pageUrl)
     with urllib.request.urlopen(req) as response:
         page = response.read().decode('utf-8')
     return page
 
 
 def cleanLines(text):
-    regTag = re.compile('<.*?>')
-    regSpace = re.compile('\s{2,}')
+    regTag = re.compile('<.*?>', flags=re.DOTALL)
+    regSpace = re.compile('\s{2,}', flags=re.DOTALL)
+    regCode = re.compile('<ul.*?</ul>', flags=re.DOTALL)
     text = regTag.sub('', text)
     text = regSpace.sub('', text)
+    text = regCode.sub('', text)
     text = html.unescape(text)
     return text
 
 
 def getArticle(response, regex):
     articleText = ''
-    if re.search(regex, response):
-        articleHTML = re.search(regex, response).group(1)
+    # print('Я ТУТ БЫЛ')
+    res = re.search(regex, response, flags=re.DOTALL)
+    if res:
+        articleHTML = res.group(1)
         articleText = cleanLines(articleHTML)
         articleText = html.unescape(articleText)
-    print(articleText)
+    # print(articleText)
     return articleText
 
 
 def retrieveText(url):
     page = getPage(url)
     # regex for various sites
-    regKP = re.compile('<div class=\"text\" itemprop=\"articleBody\" id=\"hypercontext\">(.*)?</div>')
-    regSportsRu = re.compile('<div class=\"news-item__content js-mediator-article\">(.*)?</div>')
-    regRSport = re.compile('<div class=\"b-article__text\">(.*)?</div>')
-    regSpExpr = re.compile(
-        '<div class=\"article_text publication blackcolor mt_30 mb_15 js-mediator-article\">(.*)?</div>')
+    regKP = '<div class=\"text\" itemprop=\"articleBody\" id=\"hypercontext\">(.*)?(</div>)</article>'
+    regSportsRu = '<div class=\"news-item__content js-mediator-article\">(.*)?(?:Опубликовал)'
+    regRSport = '<div class=\"b-article__text\">(.*)?(?:В этой статье)'
+    regSpExpr = '<div class=\"article_text publication blackcolor mt_30 mb_15 js-mediator-article\">(.*)?(</div>)'
     # "switch-case" for various sites
     article = ''
     if 'kp.ru' in url:
@@ -89,13 +92,18 @@ def doSymDifferences(sets):
 
 
 def main():
-    urls = ['http://www.kp.ru/daily/26615.7/3632101/', 'http://www.sports.ru/automoto/1046225660.html',
-            'http://www.sport-express.ru/formula1/reviews/niko-rosberg-shokiroval-formulu-1-1072609/',
-            'http://rsport.ru/auto/20161202/1113122367.html']
+    urls = ['http://www.kp.ru/daily/26615.7/3632101', 'http://www.sports.ru/automoto/1046225660.html',
+            'http://rsport.ru/auto/20161202/1113122367.html',
+            'http://www.sport-express.ru/formula1/reviews/niko-rosberg-shokiroval-formulu-1-1072609/']
     sets = []
     for url in urls:
-        text = retrieveText(url)
-        sets.append(makeSet(text))
+        try:
+            text = retrieveText(url)
+            sets.append(makeSet(text))
+            if text:
+                print(url)
+        except:
+            print('Fail at '+ url)
     doIntersections(sets)
     doSymDifferences(sets)
 
