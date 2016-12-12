@@ -1,8 +1,8 @@
-## Домашние работы
-
-### Газетный корпус
-
+# Домашние работы
 (for English version please see below)
+
+## Газетный корпус
+
 
 __Задание:__ краулером обойти страницы сайта газеты, выгрузить оттуда статьи, записать их (в папке plain), после чего тексты морфологически обработать через [mystem](https://tech.yandex.ru/mystem/ "Сайт и документация на сайте Яндекса") в двух вариантах — xml (папка `mystem-xml`) и txt (папка `mystem-plain`). Вся информация об обработанных статьях — в таблице `metadata.csv` в корневой папке.
 
@@ -16,7 +16,7 @@ __Задание:__ краулером обойти страницы сайта 
 
 Всё, что просто лежит здесь, в папке homework — промежуточный код и тестовые файлы.
 
-### Сайт-анкета на Flask
+## Сайт-анкета на Flask
 
 __Задание:__ написать сайт-анкету с использованием Flask, например, для полевого или социолингвистического исследования. После того, как пользователь заполнил анкету, он должен мочь: посмотреть *статистику* на специальной вкладке, *искать* среди уже заполненных анкет на отдельной вкладке (при этом полей для поиска должно быть больше двух), посмотреть *JSON* уже заполненных анкет.
 
@@ -29,9 +29,9 @@ __Задание:__ написать сайт-анкету с использов
 
 ---
 
-## In English
+# In English
 
-### Newspaper corpus
+## Newspaper corpus
 
 __Task:__ creating a corpus from a regional newspaper. The code crawls newspaper's webpage, gets article source code, parses it, gets information and saves it. Later on, morphological parsing is being processed via [mystem](https://tech.yandex.ru/mystem/ "Mystem site & documentation, in Russian").
 
@@ -43,7 +43,7 @@ Code itself, output (see the link to Google Drive), etc — in **newspaper-corpu
 + `mystem-xml` — morphologically annotated articles (after using mystem), xml format
 + `mystem-plain` — morphologically annotated articles (after using mystem), plain text format
 
-### Flask Questionnaire
+## Flask Questionnaire
 
 __Task:__ create a simple website with Flask, for instance, for a field linguistic survey or a sociolinguistic research. After filling in the form the user should be able to: explore *statistics* on a special tab, *search* throughout the data from previous forms (with at least two various search fields), take a look at previous forms' *JSON*-formatted data.
 
