@@ -1,14 +1,37 @@
 import os
 
 
+'''tables in database:
+    lemmas — lemmaID, wordform and lemma,
+    wordEntries — id, wordform, amark, bmark, textPosition, lemmaID
+'''
+
+
 def getWordforms():
     wordforms = []
+    insertLineData = []
     with open('text.txt', 'r', encoding='utf-8') as f:
-        words = f.read().lower().split()
+        words = f.read().split()
+        posCount = 0
         for word in words:
-            word = word.strip(' .,?!\"—()')
-            if word:
-                wordforms.append(word)
+            # insert lines for "wordEntries" table
+            amark = 0
+            bmark = 0
+            wordWithoutMarks = word.strip(' .,?!\"—()')
+            if word != wordWithoutMarks and wordWithoutMarks:
+                if word[0] != wordWithoutMarks[0]:
+                    amark = 1
+                if word[len(word)-1] != wordWithoutMarks[len(wordWithoutMarks)-1]:
+                    bmark = 1
+            if wordWithoutMarks:
+                wordforms.append(wordWithoutMarks.lower())
+                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, 0' % (wordWithoutMarks, amark, bmark, posCount)
+                insertLineData.append(insertLine)
+                posCount += 1
+    with open('wordEntries.txt', 'w', encoding='utf-8') as f:
+        line = '\r\n'. join(insertLineData)
+        f.write(line)
+    # wordforms — lowered words for mystem parsing
     return wordforms
 
 
