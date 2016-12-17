@@ -13,21 +13,31 @@ def getWordforms():
     with open('text.txt', 'r', encoding='utf-8') as f:
         words = f.read().split()
         posCount = 0
+        # insert lines for wordEntries table
         for word in words:
-            # insert lines for "wordEntries" table
+            # flags for marks
             amark = 0
             bmark = 0
+            isWord = 0
             wordWithoutMarks = word.strip(' .,?!\"—()')
             if word != wordWithoutMarks and wordWithoutMarks:
                 if word[0] != wordWithoutMarks[0]:
                     amark = 1
                 if word[len(word)-1] != wordWithoutMarks[len(wordWithoutMarks)-1]:
                     bmark = 1
+            # INSERT for words
             if wordWithoutMarks:
+                isWord = 1
                 wordforms.append(wordWithoutMarks.lower())
-                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, 0' % (wordWithoutMarks, amark, bmark, posCount)
+                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (wordWithoutMarks, amark, bmark, isWord, posCount)
                 insertLineData.append(insertLine)
-                posCount += 1
+            # INSERT for punctuation marks
+            else:
+                isWord = 0
+                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (word, amark, bmark, isWord, posCount)
+                insertLineData.append(insertLine)
+            posCount += 1
+    # save insert commands for wordEntries
     with open('wordEntries.txt', 'w', encoding='utf-8') as f:
         line = '\r\n'. join(insertLineData)
         f.write(line)
