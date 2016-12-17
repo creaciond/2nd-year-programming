@@ -7,13 +7,13 @@ import os
 '''
 
 def wordformEntry(word, amark, bmark, isWord, textPosition, dataAr):
-    entry = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (word, amark, bmark, isWord, textPosition)
+    entry = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES (\"%s\", %d, %d, %d, %d, 0);' % (word, amark, bmark, isWord, textPosition)
     dataAr.append(entry)
     textPosition += 1
     return dataAr, textPosition
 
 def lemmaEntry(wordform, lemma, data):
-    entry = 'INSERT INTO lemmas (wordform, lemma) VALUES \"%s\", \"%s\"' % (wordform, lemma)
+    entry = 'INSERT INTO lemmas (wordform, lemma) VALUES (\"%s\", \"%s\");' % (wordform, lemma)
     if entry not in data:
         data.add(entry)
     return data
@@ -35,7 +35,11 @@ def getWordforms():
                 if word[0] != wordWithoutMarks[0]:
                     # first symbol is a puntuation mark; it should be appended before word
                     amark = 1
-                    insertLineData, posCount = wordformEntry(word[0], 0, 0, 0, posCount, insertLineData)
+                    if word[0] in '\'\"':
+                        symbol = '\\' + word[0]
+                    else:
+                        symbol = word[0]
+                    insertLineData, posCount = wordformEntry(symbol, 0, 0, 0, posCount, insertLineData)
                 if word[len(word)-1] != wordWithoutMarks[len(wordWithoutMarks)-1]:
                     # last symbol is a punctuation mark; it will be appended after word
                     bmark = 1
@@ -44,7 +48,11 @@ def getWordforms():
                 wordforms.append(wordWithoutMarks.lower())
                 insertLineData, posCount = wordformEntry(wordWithoutMarks, amark, bmark, 1, posCount, insertLineData)
                 if bmark == 1:
-                    insertLineData, posCount = wordformEntry(word[len(word)-1], 0, 0, 0, posCount, insertLineData)
+                    if word[len(word)-1] in '\'\"':
+                        symbol = '\\' + word[len(word)-1]
+                    else:
+                        symbol = word[len(word)-1]
+                    insertLineData, posCount = wordformEntry(symbol, 0, 0, 0, posCount, insertLineData)
             # INSERT for punctuation marks
             else:
                 insertLineData, posCount = wordformEntry(word, 0, 0, 0, posCount, insertLineData)
