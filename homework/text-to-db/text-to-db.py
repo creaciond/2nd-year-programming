@@ -3,8 +3,14 @@ import os
 
 '''tables in database:
     lemmas — lemmaID, wordform and lemma,
-    wordEntries — id, wordform, amark, bmark, textPosition, lemmaID
+    wordEntries — id, wordform, amark, bmark, isWord, textPosition, lemmaID
 '''
+
+def makeEntry(word, amark, bmark, isWord, textPosition, dataAr):
+    entry = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (word, amark, bmark, isWord, textPosition)
+    dataAr.append(entry)
+    textPosition += 1
+    return dataAr, textPosition
 
 
 def getWordforms():
@@ -15,28 +21,27 @@ def getWordforms():
         posCount = 0
         # insert lines for wordEntries table
         for word in words:
-            # flags for marks
+            # flags for punctuation marks
             amark = 0
             bmark = 0
-            isWord = 0
             wordWithoutMarks = word.strip(' .,?!\"—()')
             if word != wordWithoutMarks and wordWithoutMarks:
                 if word[0] != wordWithoutMarks[0]:
+                    # first symbol is a puntuation mark; it should be appended before word
                     amark = 1
+                    insertLineData, posCount = makeEntry(word[0], 0, 0, 0, posCount, insertLineData)
                 if word[len(word)-1] != wordWithoutMarks[len(wordWithoutMarks)-1]:
+                    # last symbol is a punctuation mark; it will be appended after word
                     bmark = 1
             # INSERT for words
             if wordWithoutMarks:
-                isWord = 1
                 wordforms.append(wordWithoutMarks.lower())
-                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (wordWithoutMarks, amark, bmark, isWord, posCount)
-                insertLineData.append(insertLine)
+                insertLineData, posCount = makeEntry(wordWithoutMarks, amark, bmark, 1, posCount, insertLineData)
+                if bmark == 1:
+                    insertLineData, posCount = makeEntry(word[len(word)-1], 0, 0, 0, posCount, insertLineData)
             # INSERT for punctuation marks
             else:
-                isWord = 0
-                insertLine = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (word, amark, bmark, isWord, posCount)
-                insertLineData.append(insertLine)
-            posCount += 1
+                insertLineData, posCount = makeEntry(word, 0, 0, 0, posCount, insertLineData)
     # save insert commands for wordEntries
     with open('wordEntries.txt', 'w', encoding='utf-8') as f:
         line = '\r\n'. join(insertLineData)
