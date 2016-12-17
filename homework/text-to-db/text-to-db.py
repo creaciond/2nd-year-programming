@@ -6,11 +6,16 @@ import os
     wordEntries — id, wordform, amark, bmark, isWord, textPosition, lemmaID
 '''
 
-def makeEntry(word, amark, bmark, isWord, textPosition, dataAr):
+def wordformEntry(word, amark, bmark, isWord, textPosition, dataAr):
     entry = 'INSERT INTO wordEntries (wordform, amark, bmark, isWord, textPosition, lemmaid) VALUES \"%s\", %d, %d, %d, %d, 0' % (word, amark, bmark, isWord, textPosition)
     dataAr.append(entry)
     textPosition += 1
     return dataAr, textPosition
+
+def lemmaEntry(wordform, lemma, dataAr):
+    entry = 'INSERT INTO lemmas (wordform, lemma) VALUES \"%s\", \"%s\"' % (wordform, lemma)
+    dataAr.append(entry)
+    return dataAr
 
 
 def getWordforms():
@@ -29,19 +34,19 @@ def getWordforms():
                 if word[0] != wordWithoutMarks[0]:
                     # first symbol is a puntuation mark; it should be appended before word
                     amark = 1
-                    insertLineData, posCount = makeEntry(word[0], 0, 0, 0, posCount, insertLineData)
+                    insertLineData, posCount = wordformEntry(word[0], 0, 0, 0, posCount, insertLineData)
                 if word[len(word)-1] != wordWithoutMarks[len(wordWithoutMarks)-1]:
                     # last symbol is a punctuation mark; it will be appended after word
                     bmark = 1
             # INSERT for words
             if wordWithoutMarks:
                 wordforms.append(wordWithoutMarks.lower())
-                insertLineData, posCount = makeEntry(wordWithoutMarks, amark, bmark, 1, posCount, insertLineData)
+                insertLineData, posCount = wordformEntry(wordWithoutMarks, amark, bmark, 1, posCount, insertLineData)
                 if bmark == 1:
-                    insertLineData, posCount = makeEntry(word[len(word)-1], 0, 0, 0, posCount, insertLineData)
+                    insertLineData, posCount = wordformEntry(word[len(word)-1], 0, 0, 0, posCount, insertLineData)
             # INSERT for punctuation marks
             else:
-                insertLineData, posCount = makeEntry(word, 0, 0, 0, posCount, insertLineData)
+                insertLineData, posCount = wordformEntry(word, 0, 0, 0, posCount, insertLineData)
     # save insert commands for wordEntries
     with open('wordEntries.txt', 'w', encoding='utf-8') as f:
         line = '\r\n'. join(insertLineData)
@@ -54,10 +59,25 @@ def useMystem(wordformsPath):
     mystemPath = '/Users/dariamaximova/Desktop/HSE/Программирование/mystem'
     # paths for source and goal files
     sourcePath = '.' + os.sep + wordformsPath
-    goalPath = '.' + os.sep + 'mystemRes.txt'
+    goalFileName = 'mystemRes.txt'
+    goalPath = '.' + os.sep + goalFileName
     # -cnd == all input to output, each word on new line, context disambiguation
     mystemCommand = mystemPath + ' ' + sourcePath + ' ' + goalPath + ' ' + '-cnd'
     os.system(mystemCommand)
+    return goalFileName
+
+
+def getLemmas(lemmasFile):
+    with open(lemmasFile, 'r', encoding='utf-8') as f:
+        lemmaEntryData = []
+        for line in f.readlines():
+            # if there's a {, there's a pair wordform{lemma} in the line
+            if '{' in line:
+                lineItems = line.split('{')
+                lemmaEntryData = lemmaEntry(lineItems[0], lineItems[1].strip('}\n'), lemmaEntryData)
+    with open('lemmas.txt', 'w', encoding='utf-8') as f:
+        line = '\r\n'.join(lemmaEntryData)
+        f.write(line)
 
 
 
@@ -66,7 +86,8 @@ def main():
     with open('wordforms.txt', 'w', encoding='utf-8') as f:
         line = ' '.join(wordforms)
         f.write(line)
-    useMystem('wordforms.txt')
+    lemmasFile = useMystem('wordforms.txt')
+    getLemmas(lemmasFile)
 
 
 if __name__ == '__main__':
