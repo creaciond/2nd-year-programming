@@ -12,10 +12,11 @@ def wordformEntry(word, amark, bmark, isWord, textPosition, dataAr):
     textPosition += 1
     return dataAr, textPosition
 
-def lemmaEntry(wordform, lemma, dataAr):
+def lemmaEntry(wordform, lemma, data):
     entry = 'INSERT INTO lemmas (wordform, lemma) VALUES \"%s\", \"%s\"' % (wordform, lemma)
-    dataAr.append(entry)
-    return dataAr
+    if entry not in data:
+        data.add(entry)
+    return data
 
 
 def getWordforms():
@@ -69,14 +70,14 @@ def useMystem(wordformsPath):
 
 def getLemmas(lemmasFile):
     with open(lemmasFile, 'r', encoding='utf-8') as f:
-        lemmaEntryData = []
+        lemmaEntryData = set()
         for line in f.readlines():
             # if there's a {, there's a pair wordform{lemma} in the line
             if '{' in line:
                 lineItems = line.split('{')
                 lemmaEntryData = lemmaEntry(lineItems[0], lineItems[1].strip('}\n'), lemmaEntryData)
-    with open('lemmas.txt', 'w', encoding='utf-8') as f:
-        line = '\r\n'.join(lemmaEntryData)
+    with open('lemmaEntries.txt', 'w', encoding='utf-8') as f:
+        line = '\r\n'.join(list(sorted(lemmaEntryData)))
         f.write(line)
 
 
