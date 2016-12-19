@@ -1,5 +1,6 @@
 import re
 import html
+import os
 
 
 def cleanText(text):
@@ -46,6 +47,34 @@ def intersectingWords(article, unparsed):
         f.write(line)
 
 
+def doMystem(unparsedPath):
+    mystemPath = '/Users/dariamaximova/Desktop/HSE/Программирование/mystem'
+    sourcePath = '.' + os.sep + unparsedPath
+    goalPath = '.' + os.sep + 'mystemRes.txt'
+    # options: input to output, English grammemes
+    options = '-cdi --eng-gr'
+    mystemCommand = mystemPath + ' ' + sourcePath + ' ' + goalPath + ' ' + options
+    os.system(mystemCommand)
+    return goalPath
+
+
+def detectRusNouns(unparsedPath):
+    # parsingResult = doMystem(unparsedPath)
+    parsingResult = '.' + os.sep + 'mystemRes.txt'
+    wannabeRusNouns = set()
+    with open(parsingResult, 'r', encoding='utf-8') as f:
+        regSubjNom = 'S[a-z,=]*?(nom,sg)'
+        for parsing in f.readlines():
+            if '?' not in parsing:
+                if re.search(regSubjNom, parsing):
+                    # parsing.split('{')[0] == word in Adyghe
+                    if (parsing.split('{')[0] not in wannabeRusNouns) and (not parsing.split('{')[0].startswith('ӏ')):
+                        wannabeRusNouns.add(parsing.split('{')[0])
+    with open('rus_nouns.txt', 'w', encoding='utf-8') as f:
+        line = '\n'.join(list(sorted(wannabeRusNouns)))
+        f.write(line)
+
+
 def main():
     articlePath = 'adyghePolitics.htm'
     unparsedPath = 'adyghe-unparsed-words.txt'
@@ -53,6 +82,8 @@ def main():
     unparsedWords = retrieveUnparsedWords(unparsedPath)
     # задание на 5
     intersectingWords(articleWords, unparsedWords)
+    # задание на 8
+    detectRusNouns(unparsedPath)
 
 
 if __name__== '__main__':
