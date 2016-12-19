@@ -18,8 +18,8 @@ def thatAwfulLetter(unparsedPath):
         # each line == new word
         for word in f.readlines():
             if 'ӏ' in word:
-                word = re.sub('ӏ', 'i',word)
-            normalWords.append(word)
+                word = re.sub('ӏ', 'i', word)
+            normalWords.append(word.strip('\n'))
     with open(unparsedPath, 'w', encoding='utf-8') as f:
         line = '\n'.join(normalWords)
         f.write(line)
