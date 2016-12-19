@@ -12,6 +12,19 @@ def cleanText(text):
     return text
 
 
+def thatAwfulLetter(unparsedPath):
+    normalWords = []
+    with open(unparsedPath, 'r', encoding='utf-8') as f:
+        # each line == new word
+        for word in f.readlines():
+            if 'ӏ' in word:
+                word = re.sub('ӏ', 'i',word)
+            normalWords.append(word)
+    with open(unparsedPath, 'w', encoding='utf-8') as f:
+        line = '\n'.join(normalWords)
+        f.write(line)
+
+
 def retrieveArticleWords(articlePath):
     with open(articlePath, 'r', encoding='utf-8') as f:
         # get words
@@ -36,7 +49,8 @@ def retrieveUnparsedWords(unparsedPath):
         # each line == new word
         for word in f.readlines():
             if word not in unparsedWords:
-                unparsedWords.add(word.strip('\n'))
+                word = re.sub('ӏ', 'i', word)
+                unparsedWords.add(word.strip('\n').lower())
     return unparsedWords
 
 
@@ -59,8 +73,9 @@ def doMystem(unparsedPath):
 
 
 def detectRusNouns(unparsedPath):
-    # parsingResult = doMystem(unparsedPath)
-    parsingResult = '.' + os.sep + 'mystemRes.txt'
+    # майстем раздражает каждый раз обрабатывать, поэтому закомменчено
+    parsingResult = doMystem(unparsedPath)
+    # parsingResult = '.' + os.sep + 'mystemRes.txt'
     wannabeRusNouns = set()
     with open(parsingResult, 'r', encoding='utf-8') as f:
         regSNom = 'S[a-z,=]*?(nom,sg)'
@@ -104,6 +119,8 @@ def main():
     # задание на 5
     intersectingWords(articleWords, unparsedWords)
     # задание на 8
+    # меняем отстойную букву на нормальную
+    thatAwfulLetter(unparsedPath)
     wannabeRusNouns = detectRusNouns(unparsedPath)
     # задание на 10
     makeInserts(wannabeRusNouns, 'mystemRes.txt')
