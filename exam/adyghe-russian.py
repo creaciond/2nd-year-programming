@@ -103,7 +103,7 @@ def makeInserts(wannabeRusNouns, mystemPath):
                 isSNom = re.search(regSNom, parsing.split('{')[1])
                 if hasRusLemma and isSNom:
                     rusLemma = re.search(regRusLemma, parsing.split('{')[1]).group(1)
-                    insertSQL = 'INSERT INTO rus_words (wordform, lemma) VALUES \"%s\", \"%s\"' % (adygheWord, rusLemma)
+                    insertSQL = 'INSERT INTO rus_words (wordform, lemma) VALUES (\"%s\", \"%s\");' % (adygheWord, rusLemma)
                     if insertSQL not in inserts:
                         inserts.add(insertSQL)
     with open('sql.txt', 'w', encoding='utf-8') as f:
