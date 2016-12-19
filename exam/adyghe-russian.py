@@ -63,15 +63,36 @@ def detectRusNouns(unparsedPath):
     parsingResult = '.' + os.sep + 'mystemRes.txt'
     wannabeRusNouns = set()
     with open(parsingResult, 'r', encoding='utf-8') as f:
-        regSubjNom = 'S[a-z,=]*?(nom,sg)'
+        regSNom = 'S[a-z,=]*?(nom,sg)'
         for parsing in f.readlines():
             if '?' not in parsing:
-                if re.search(regSubjNom, parsing):
+                if re.search(regSNom, parsing):
                     # parsing.split('{')[0] == word in Adyghe
                     if (parsing.split('{')[0] not in wannabeRusNouns) and (not parsing.split('{')[0].startswith('ӏ')):
                         wannabeRusNouns.add(parsing.split('{')[0])
     with open('rus_nouns.txt', 'w', encoding='utf-8') as f:
         line = '\n'.join(list(sorted(wannabeRusNouns)))
+        f.write(line)
+    return wannabeRusNouns
+
+
+def makeInserts(wannabeRusNouns, mystemPath):
+    inserts = set()
+    with open(mystemPath, 'r', encoding='utf-8') as f:
+        for parsing in f.readlines():
+            adygheWord = parsing.split('{')[0]
+            if adygheWord in wannabeRusNouns:
+                regRusLemma = '(.*?)='
+                hasRusLemma = re.search(regRusLemma, parsing.split('{')[1])
+                regSNom = 'S[a-z,=]*?(nom,sg)'
+                isSNom = re.search(regSNom, parsing.split('{')[1])
+                if hasRusLemma and isSNom:
+                    rusLemma = re.search(regRusLemma, parsing.split('{')[1]).group(1)
+                    insertSQL = 'INSERT INTO rus_words (wordform, lemma) VALUES \"%s\", \"%s\"' % (adygheWord, rusLemma)
+                    if insertSQL not in inserts:
+                        inserts.add(insertSQL)
+    with open('sql.txt', 'w', encoding='utf-8') as f:
+        line = '\n'.join(list(sorted(inserts)))
         f.write(line)
 
 
@@ -83,7 +104,9 @@ def main():
     # задание на 5
     intersectingWords(articleWords, unparsedWords)
     # задание на 8
-    detectRusNouns(unparsedPath)
+    wannabeRusNouns = detectRusNouns(unparsedPath)
+    # задание на 10
+    makeInserts(wannabeRusNouns, 'mystemRes.txt')
 
 
 if __name__== '__main__':
