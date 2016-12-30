@@ -14,6 +14,8 @@
 
 В папке *homework*, соответственно, код и прилагающиеся файлы к проектам. Readme.md в папке homeworks описывает все проекты, которые уже были сданы. 
 
+В папке *exam* — экзамен за зимний семестр (написан 19.12.2016 г.)
+
 ---
 
 ## In English
@@ -28,3 +30,5 @@ Assignments (in Russian) can be found [here](https://github.com/elmiram/2016lear
 There are two folders: first one, *classwork*, contains code and notes from classes, with simple snippets of code.
 
 *homework* contains readme.md with desciptions of projects and each folder inside is a separate project itself, with its own code and all files necessary for work.
+
+*exam* contains code from winter exam, written on December 19, 2016.
