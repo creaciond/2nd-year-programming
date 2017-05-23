@@ -10,7 +10,6 @@ def prettify_tweets(tweet_file):
         f_write.write('\n'.join(tweets))
 
 
-
 def get_tweets(api):
     username = 'creacion_D'
     tweet_count = api.get_user(username).statuses_count
