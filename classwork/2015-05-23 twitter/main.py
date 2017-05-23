@@ -16,7 +16,7 @@ def get_tweets(api):
     # tweets = api.user_timeline(screen_name=username, count=tweet_count)
     tweets_clean = []
     for tweet in tweepy.Cursor(api.user_timeline, screen_name=username).items(tweet_count):
-        tweets_clean.append(tweet.text.replace('\n', ' '))
+        tweets_clean.append(' '.join([str(tweet.created_at), tweet.text.replace('\n', ' ')]))
     with open('mytweets.txt', 'w', encoding='utf-8') as f:
         f.write('\n'.join([tweet for tweet in tweets_clean]))
 
