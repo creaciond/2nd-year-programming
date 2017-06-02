@@ -5,7 +5,7 @@ import random
 def get_popular_words(morph_analyzer):
     lemmas = {}
     with open('./1grams-3.txt', 'r', encoding='utf-8') as f:
-        words = [line.split('\t')[1].strip('\n').lower() for line in f.readlines()]
+        words = [line.split('\t')[1].strip('\n').lower() for line in f.readlines()[:100000]]
     for word in words:
         unchangeable = str(morph_analyzer.parse(word)[0].tag).split(' ')[0]
         lemma = str(morph_analyzer.parse(word)[0].normal_form)
@@ -19,13 +19,8 @@ def get_popular_words(morph_analyzer):
 
 
 def similar_word(words, characteristics, morph_analyzer):
-    word = random.choice(words[characteristics])
-    characteristics = str(morph_analyzer.parse(word)[0].tag).split(' ')
-    if len(characteristics) == 1:
-        need_to_inflect = False
-    else:
-        need_to_inflect = True
-    return word, need_to_inflect
+    word = morph_analyzer.parse(random.choice(words[characteristics]))[0].normal_form
+    return word
 
 
 def work_with_words(word, morph_analyzer, popular_words):
@@ -34,8 +29,8 @@ def work_with_words(word, morph_analyzer, popular_words):
         characteristics[0] — unchangeable
         characteristics[1] — changeable
     '''
-    new_word, need_to_inflect = similar_word(popular_words, characteristics[0], morph_analyzer)
-    if need_to_inflect:
+    new_word = similar_word(popular_words, characteristics[0], morph_analyzer)
+    if len(characteristics) != 1:
         params = set(characteristics[1].split(','))
         new_word_inflected = str(morph_analyzer.parse(new_word)[0].inflect(params).word)
     else:
