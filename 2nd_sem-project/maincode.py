@@ -48,15 +48,20 @@ def check_message(message):
 def get_closeness(morph_analyzer, words):
     # semantic_dict = {w1: [distance to w2, distance to w3, etc]}
     semantic_dict = {word: [] for word in words}
-    link = 'http://rusvectores.org/ru/visual/'
-    parameters = {}
-    for word in words:
+    # http: // rusvectores.org / MODEL / WORD1__WORD2 / api / similarity /
+    link = 'http://rusvectores.org/ruscorpora/'
+    for i in range(0, len(words)):
         # change into RusVectores format
-        word = word + '_' + str(morph_analyzer.parse(word).tag.POS)
-        try:
-            response = requests.get(link, params=parameters)
-        except:
-            response = {}
+        word1 = words[i] + '_' + str(morph_analyzer.parse(words[i]).tag.POS)
+        for j in range(i+1, len(words)):
+            word2 = words[j] + '_' + str(morph_analyzer.parse(words[j]).tag.POS)
+            link = link + '/' + word1 + '__' + word2 + '/api/similarity'
+            try:
+                response = requests.get(link)
+                print(str(response))
+            except:
+                response = {}
+                print('no response')
     return semantic_dict
 
 
@@ -79,6 +84,11 @@ def print_error_input(message):
     return error_code, words
 
 
+def doing_check(message):
+    bot.send_message(message.chat.id, "Проверяю слова, которые вы ввели")
+    error_code, words = print_error_input(message)
+
+
 '''
     BOT MESSAGES
 '''
@@ -88,7 +98,7 @@ def send_welcome(message):
     bot.send_message(message.chat.id, "Привет! Этот бот умеет вычислять семантическую близость двух слов и"
                      + " строить граф, где отображается близость этих слов. \n"
                      + "Для того, чтобы получить граф, введите команду /get_graph и слова через пробел "
-                     + "\(например, \"кот кошка играть\"\). "
+                     + "(например, \"кот кошка играть\"). "
                      + "Оптимальное количество — от 7 до 20 слов. \n"
                      + "Чтобы увидеть весь список комманд, наберите /commands.")
 
@@ -108,20 +118,22 @@ def tell_commands(message):
                      + "/help — выводит подсказку про бота и пример ввода,\n"
                      + "/about — про бота и его создателя,\n"
                      + "/commands — список команд для бота (вы только что использовали это команду),\n"
-                     + "/get_graph — получение графа для введённых слов.")
+                     + "/get_graph — получение графа для введённых слов,\n"
+                     + "/end — закончить общение с ботом. Чтобы начать его снова, введите /start.")
+
 
 # messages with words
 @bot.message_handler(commands='/get_graph')
 def do_stuff(message):
     # input
-    bot.send_message(message.chat.id, "Введите слова, разделённые пробелом \(например, \"кот кошка играть\"\)")
+    input = bot.send_message(message.chat.id, "Введите слова, разделённые пробелом (например, \"кот кошка играть\").")
     # check input
-    bot.send_message(message.chat.id, "Проверяю, всё ли хорошо со вводом!")
-    error_code, words = print_error_input(message)
-    if error_code == 0:
+    error_code, words = bot.register_next_step_handler(input, print_error_input)
+    # error_code, words = print_error_input(input)
+    # if error_code == 0:
         # do semantic closeness
-        ma = MorphAnalyzer()
-        sem_closeness = get_closeness(ma, words)
+        # ma = MorphAnalyzer()
+        # sem_closeness = get_closeness(ma, words)
         # draw graphs
 
 '''
