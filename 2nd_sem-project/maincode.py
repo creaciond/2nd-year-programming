@@ -26,23 +26,23 @@ bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
 '''
     WORK WITH INPUT
 '''
-def check_message(message):
+def check_message(words):
     alphabet = set(list('абвгдеёжзийклмнопрстуфхцчшщъыьэюя '))
-    message = message.strip('.,?!\(\)\[\]\'\"\\').lower()
+    words = [word.strip('.,?!\(\)\[\]\'\"\\').lower() for word in words]
     # check for number of words
-    if len(message.split()) <= 2:
+    if len(words) <= 2:
         error_code = 1
     # check for characters
     i = 0
     all_cyrillic = True
-    while i <= len(message) and all_cyrillic:
-        if message[i] not in alphabet:
+    while i <= len(words) and all_cyrillic:
+        if words[i] not in alphabet:
             error_code = 2
             all_cyrillic = False
     # if everything's good so far, no error
     if all_cyrillic:
         error_code = 0
-    return error_code, message.split()
+    return error_code, words
 
 
 def get_closeness(morph_analyzer, words):
@@ -81,12 +81,7 @@ def print_error_input(message):
                          + "Не расстраивайтесь, наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
     else:
         bot.send_message(message.chat.id, "Всё хорошо, начинаю работать!")
-    return error_code, words
-
-
-def doing_check(message):
-    bot.send_message(message.chat.id, "Проверяю слова, которые вы ввели")
-    error_code, words = print_error_input(message)
+    return words
 
 
 '''
@@ -98,7 +93,7 @@ def send_welcome(message):
     bot.send_message(message.chat.id, "Привет! Этот бот умеет вычислять семантическую близость двух слов и"
                      + " строить граф, где отображается близость этих слов. \n"
                      + "Для того, чтобы получить граф, введите команду /get_graph и слова через пробел "
-                     + "(например, \"кот кошка играть\"). "
+                     + "(например, \"/get_graph кот кошка играть\"). "
                      + "Оптимальное количество — от 7 до 20 слов. \n"
                      + "Чтобы увидеть весь список комманд, наберите /commands.")
 
@@ -118,22 +113,18 @@ def tell_commands(message):
                      + "/help — выводит подсказку про бота и пример ввода,\n"
                      + "/about — про бота и его создателя,\n"
                      + "/commands — список команд для бота (вы только что использовали это команду),\n"
-                     + "/get_graph — получение графа для введённых слов,\n"
+                     + "/get_graph — получение графа для введённых слов. Слова нужно вводить через пробел после команды,\n"
                      + "/end — закончить общение с ботом. Чтобы начать его снова, введите /start.")
 
 
 # messages with words
 @bot.message_handler(commands='/get_graph')
 def do_stuff(message):
-    # input
-    input = bot.send_message(message.chat.id, "Введите слова, разделённые пробелом (например, \"кот кошка играть\").")
+    input = message.strip()[1:]
     # check input
-    error_code, words = bot.register_next_step_handler(input, print_error_input)
-    # error_code, words = print_error_input(input)
+    words = print_error_input(input)
     # if error_code == 0:
         # do semantic closeness
-        # ma = MorphAnalyzer()
-        # sem_closeness = get_closeness(ma, words)
         # draw graphs
 
 '''
