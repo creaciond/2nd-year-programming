@@ -48,20 +48,19 @@ def check_message(words):
 def get_closeness(morph_analyzer, words):
     # semantic_dict = {w1: [distance to w2, distance to w3, etc]}
     semantic_dict = {word: [] for word in words}
-    # http: // rusvectores.org / MODEL / WORD1__WORD2 / api / similarity /
+    # http://rusvectores.org/ruscorpora/WORD1__WORD2/api/similarity/
     link = 'http://rusvectores.org/ruscorpora/'
     for i in range(0, len(words)):
         # change into RusVectores format
         word1 = words[i] + '_' + str(morph_analyzer.parse(words[i]).tag.POS)
         for j in range(i+1, len(words)):
             word2 = words[j] + '_' + str(morph_analyzer.parse(words[j]).tag.POS)
-            link = link + '/' + word1 + '__' + word2 + '/api/similarity'
+            link = 'http://rusvectores.org/ruscorpora/%s__%s/api/similarity/' % (word1, word2)
             try:
                 response = requests.get(link)
-                print(str(response))
+                semantic_dict[words[i]].append(float(str(response).strip()[0]))
             except:
                 response = {}
-                print('no response')
     return semantic_dict
 
 
