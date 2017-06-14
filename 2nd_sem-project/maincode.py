@@ -2,7 +2,6 @@
 import telebot
 import conf
 import flask
-from pymorphy2 import MorphAnalyzer
 import requests
 
 '''
@@ -47,14 +46,6 @@ def check_message(words):
     return error_code, words
 
 
-# fixes auto morph-analyzer bugs to be compatible with RusVectores
-def change_tags(word):
-    word = word.replace('INFN', 'VERB')
-    word = word.replace('PRTF', 'NOUN')
-    word = word.replace('PRTS', 'NOUN')
-    return word
-
-
 # gives semantic closeness between pairs of words
 def get_closeness(morph_analyzer, words):
     # semantic_dict = {w1: [distance to w2, distance to w3, etc]}
@@ -62,12 +53,8 @@ def get_closeness(morph_analyzer, words):
     # LINK:
     # http://rusvectores.org/ruscorpora/WORD1__WORD2/api/similarity/
     for i in range(0, len(words)):
-        # change into RusVectores format [1]
-        word1 = change_tags(words[i] + '_' + str(morph_analyzer.parse(words[i])[0].tag.POS))
         for j in range(i+1, len(words)):
-            # change into RusVectores format [2]
-            word2 = change_tags(words[j] + '_' + str(morph_analyzer.parse(words[j])[0].tag.POS))
-            link = 'http://rusvectores.org/ruscorpora/%s__%s/api/similarity/' % (word1, word2)
+            link = 'http://rusvectores.org/ruscorpora/%s__%s/api/similarity/' % (words[i], words[j])
             try:
                 response = requests.get(link)
                 dist = float(str(response.text).split()[0])
