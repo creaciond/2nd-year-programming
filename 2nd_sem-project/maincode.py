@@ -28,7 +28,7 @@ bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
 '''
 def check_message(words):
     alphabet = set(list('абвгдеёжзийклмнопрстуфхцчшщъыьэюя '))
-    words = [word.strip('.,?!\(\)\[\]\'\"\\').lower() for word in words]
+    words = [str(word).strip('.,?!\(\)\[\]\'\"\\').lower() for word in words]
     # check for number of words
     if len(words) <= 2:
         error_code = 1
@@ -39,27 +39,42 @@ def check_message(words):
         if words[i] not in alphabet:
             error_code = 2
             all_cyrillic = False
+        else:
+            i += 1
     # if everything's good so far, no error
     if all_cyrillic:
         error_code = 0
     return error_code, words
 
 
+# fixes auto morph-analyzer bugs to be compatible with RusVectores
+def change_tags(word):
+    word = word.replace('INFN', 'VERB')
+    word = word.replace('PRTF', 'NOUN')
+    word = word.replace('PRTS', 'NOUN')
+    return word
+
+
+# gives semantic closeness between pairs of words
 def get_closeness(morph_analyzer, words):
     # semantic_dict = {w1: [distance to w2, distance to w3, etc]}
     semantic_dict = {word: [] for word in words}
+    # LINK:
     # http://rusvectores.org/ruscorpora/WORD1__WORD2/api/similarity/
-    link = 'http://rusvectores.org/ruscorpora/'
     for i in range(0, len(words)):
-        # change into RusVectores format
-        word1 = words[i] + '_' + str(morph_analyzer.parse(words[i]).tag.POS)
+        # change into RusVectores format [1]
+        word1 = change_tags(words[i] + '_' + str(morph_analyzer.parse(words[i])[0].tag.POS))
         for j in range(i+1, len(words)):
-            word2 = words[j] + '_' + str(morph_analyzer.parse(words[j]).tag.POS)
+            # change into RusVectores format [2]
+            word2 = change_tags(words[j] + '_' + str(morph_analyzer.parse(words[j])[0].tag.POS))
             link = 'http://rusvectores.org/ruscorpora/%s__%s/api/similarity/' % (word1, word2)
             try:
                 response = requests.get(link)
-                semantic_dict[words[i]].append(float(str(response).strip()[0]))
+                dist = float(str(response.text).split()[0])
+                semantic_dict[words[i]].append(dist)
+                semantic_dict[words[j]].append(dist)
             except:
+                # todo later: send a message that no closeness was found for the pair
                 response = {}
     return semantic_dict
 
@@ -80,7 +95,7 @@ def print_error_input(message):
                          + "Не расстраивайтесь, наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
     else:
         bot.send_message(message.chat.id, "Всё хорошо, начинаю работать!")
-    return words
+    return error_code, words
 
 
 '''
@@ -120,10 +135,13 @@ def tell_commands(message):
 @bot.message_handler(commands='/get_graph')
 def do_stuff(message):
     input = message.strip()[1:]
+    ma = MorphAnalyzer()
     # check input
-    words = print_error_input(input)
-    # if error_code == 0:
+    error_code, words = print_error_input(input)
+    if error_code == 0:
         # do semantic closeness
+        sem_dict = get_closeness(ma, words)
+        bot.send_message(message.chat.id, sem_dict)
         # draw graphs
 
 '''
