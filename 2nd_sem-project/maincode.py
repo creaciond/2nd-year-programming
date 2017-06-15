@@ -99,14 +99,14 @@ def do_graph(semantic_dict):
         values = semantic_dict[word]
         while i < len(values):
             if words[i] == word:
-                print('то же слово')
+                # kinda useless, but we need to do smth in the case
+                buf = 1
             else:
-                print('%s - %s: %f' % (word, words[i], values[i]))
                 gr.add_edge(word, words[i], weight=values[i])
             i += 1
     # draw graph
     pos = nx.spring_layout(gr)
-    nx.draw_networkx_nodes(gr, pos, node_color='black', node_size=50)
+    nx.draw_networkx_nodes(gr, pos, node_color='black', node_size=100)
     nx.draw_networkx_edges(gr, pos, edge_color='gray')
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
