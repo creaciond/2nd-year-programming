@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+# bot
 import telebot
 import conf
 import flask
+# code itself
 import requests
 import networkx as nx
 import matplotlib.pyplot as plt
