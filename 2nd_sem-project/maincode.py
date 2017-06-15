@@ -3,6 +3,8 @@ import telebot
 import conf
 import flask
 import requests
+import networkx as nx
+import matplotlib.pyplot as plt
 
 '''
     BOT
@@ -47,7 +49,7 @@ def check_message(words):
 
 
 # gives semantic closeness between pairs of words
-def get_closeness(morph_analyzer, words):
+def get_closeness(words):
     # semantic_dict = {w1: [distance to w2, distance to w3, etc]}
     semantic_dict = {word: [] for word in words}
     # LINK:
@@ -83,6 +85,32 @@ def print_error_input(message):
     else:
         bot.send_message(message.chat.id, "Всё хорошо, начинаю работать!")
     return error_code, words
+
+
+def do_graph(semantic_dict):
+    gr = nx.Graph()
+    words = list(semantic_dict.keys())
+    # add nodes
+    gr.add_nodes_from(words)
+    # add edges
+    for word in words:
+        print(word)
+        i = 0
+        values = semantic_dict[word]
+        while i < len(values):
+            if words[i] == word:
+                print('то же слово')
+            else:
+                print('%s - %s: %f' % (word, words[i], values[i]))
+                gr.add_edge(word, words[i], weight=values[i])
+            i += 1
+    # draw graph
+    pos = nx.spring_layout(gr)
+    nx.draw_networkx_nodes(gr, pos, node_color='black', node_size=50)
+    nx.draw_networkx_edges(gr, pos, edge_color='gray')
+    nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
+    plt.axis('off')
+    plt.show()
 
 
 '''
@@ -122,12 +150,11 @@ def tell_commands(message):
 @bot.message_handler(commands='/get_graph')
 def do_stuff(message):
     input = message.strip()[1:]
-    ma = MorphAnalyzer()
     # check input
     error_code, words = print_error_input(input)
     if error_code == 0:
         # do semantic closeness
-        sem_dict = get_closeness(ma, words)
+        sem_dict = get_closeness(words)
         bot.send_message(message.chat.id, sem_dict)
         # draw graphs
 
