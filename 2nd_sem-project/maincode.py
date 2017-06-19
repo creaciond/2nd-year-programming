@@ -91,25 +91,24 @@ def print_error_input(message):
 
 def do_graph(semantic_dict):
     gr = nx.Graph()
-    words = list(semantic_dict.keys())
-    # add nodes
-    gr.add_nodes_from(words)
-    # add edges
-    for word in words:
-        print(word)
+    # dictionary parsing
+    keys = list(semantic_dict.keys())
+    for key in keys:
         i = 0
-        values = semantic_dict[word]
+        values = semantic_dict[key]
         while i < len(values):
-            if words[i] == word:
-                # kinda useless, but we need to do smth in the case
+            if keys[i] == key:
+                # this thing is kind of useless, but still
                 buf = 1
             else:
-                gr.add_edge(word, words[i], weight=values[i])
+                gr.add_edge(key, keys[i], weight=values[i])
             i += 1
-    # draw graph
+    # edge thickness
+    edges = [d['weight'] for (u, v, d) in gr.edges(data=True)]
+    # drawing the graph
     pos = nx.spring_layout(gr)
-    nx.draw_networkx_nodes(gr, pos, node_color='black', node_size=100)
-    nx.draw_networkx_edges(gr, pos, edge_color='gray')
+    nx.draw_networkx_nodes(gr, pos, node_color='gray', node_size=100)
+    nx.draw_networkx_edges(gr, pos, edge_color='black', width=edges)
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
     plt.show()
@@ -159,6 +158,7 @@ def do_stuff(message):
         sem_dict = get_closeness(words)
         bot.send_message(message.chat.id, sem_dict)
         # draw graphs
+        do_graph(sem_dict)
 
 '''
     FLASK
