@@ -111,7 +111,7 @@ def do_graph(semantic_dict):
     nx.draw_networkx_edges(gr, pos, edge_color='black', width=edges)
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
-    plt.show()
+    return plt
 
 
 '''
@@ -158,7 +158,8 @@ def do_stuff(message):
         sem_dict = get_closeness(words)
         bot.send_message(message.chat.id, sem_dict)
         # draw graphs
-        do_graph(sem_dict)
+        plot = do_graph(sem_dict)
+        bot.send_photo(message.chat.id, plot, reply_to_message_id=message.message_id)
 
 '''
     FLASK
