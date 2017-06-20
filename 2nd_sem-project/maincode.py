@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # bot
 import telebot
-import conf
 import flask
+import os
 # code itself
 import requests
 import networkx as nx
@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
     BOT
 '''
 # creating a bot
-bot = telebot.TeleBot(conf.TOKEN, threaded=False)
+TOKEN = os.environ['TOKEN']
+bot = telebot.TeleBot(TOKEN, threaded=False)
 app = flask.Flask(__name__)
 
 
@@ -20,10 +21,8 @@ app = flask.Flask(__name__)
     WEBHOOKS
 '''
 # webhook URLs and tokens — in conf.py
-WEBHOOK_URL_BASE = 'https://{}:{}'.format(conf.WEBHOOK_HOST, conf.WEBHOOK_PORT)
-WEBHOOK_URL_PATH = '/{}/'.format(conf.TOKEN)
 bot.remove_webhook()
-bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+bot.set_webhook(url="https://https://lit-beyond-69051.herokuapp.com/bot")
 
 
 '''
