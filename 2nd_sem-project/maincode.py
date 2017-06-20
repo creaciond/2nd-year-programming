@@ -164,7 +164,11 @@ def do_stuff(message):
         sem_dict = get_closeness(words)
         # bot.send_message(message.chat.id, sem_dict)
         #! draw graphs
-        plot = do_graph(sem_dict)
+        plot, distances = do_graph(sem_dict)
+        dist_to_show = []
+        for distance in distances:
+            dist_to_show.append('%s — %s: %f' % (distance[0], distance[1], distance[2]))
+        bot.send_message(message.chat.id, '\n'.join(dist_to_show), reply_to_message_id=message.message,id)
         bot.send_photo(message.chat.id, plot, reply_to_message_id=message.message_id)
 
 '''
