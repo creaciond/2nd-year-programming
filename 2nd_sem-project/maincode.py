@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 '''
     BOT
 '''
-# CREATING A BOT
+# creating a bot
 bot = telebot.TeleBot(conf.TOKEN, threaded=False)
 app = flask.Flask(__name__)
 
@@ -32,21 +32,19 @@ bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
 def check_message(words):
     alphabet = set(list('абвгдеёжзийклмнопрстуфхцчшщъыьэюя '))
     words = [str(word).strip('.,?!\(\)\[\]\'\"\\').lower() for word in words]
+    error_code = 0
     # check for number of words
     if len(words) <= 2:
         error_code = 1
     # check for characters
     i = 0
-    all_cyrillic = True
-    while i <= len(words) and all_cyrillic:
+    while i <= len(words):
         if words[i] not in alphabet:
             error_code = 2
-            all_cyrillic = False
+            break
         else:
             i += 1
     # if everything's good so far, no error
-    if all_cyrillic:
-        error_code = 0
     return error_code, words
 
 
@@ -61,7 +59,9 @@ def get_closeness(words):
             link = 'http://rusvectores.org/ruscorpora/%s__%s/api/similarity/' % (words[i], words[j])
             try:
                 response = requests.get(link)
+                # distance
                 dist = float(str(response.text).split()[0])
+                # append distance to the referring array in dictionary
                 semantic_dict[words[i]].append(dist)
                 semantic_dict[words[j]].append(dist)
             except:
@@ -90,18 +90,21 @@ def print_error_input(message):
 
 
 def do_graph(semantic_dict):
+    distances = []
     gr = nx.Graph()
     # dictionary parsing
-    keys = list(semantic_dict.keys())
-    for key in keys:
+    words = list(semantic_dict.keys())
+    for word in words:
         i = 0
-        values = semantic_dict[key]
+        values = semantic_dict[word]
         while i < len(values):
-            if keys[i] == key:
+            if words[i] == word:
                 # this thing is kind of useless, but still
                 buf = 1
             else:
-                gr.add_edge(key, keys[i], weight=values[i])
+                gr.add_edge(word, words[i], weight=values[i])
+                word_distance = (word, words[i], values[i])
+                distances.append(word_distance)
             i += 1
     # edge thickness
     edges = [d['weight'] for (u, v, d) in gr.edges(data=True)]
@@ -111,7 +114,7 @@ def do_graph(semantic_dict):
     nx.draw_networkx_edges(gr, pos, edge_color='black', width=edges)
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
-    return plt
+    return plt, word_distance
 
 
 '''
@@ -154,10 +157,10 @@ def do_stuff(message):
     # check input
     error_code, words = print_error_input(input)
     if error_code == 0:
-        # do semantic closeness
+        #! do semantic closeness
         sem_dict = get_closeness(words)
-        bot.send_message(message.chat.id, sem_dict)
-        # draw graphs
+        # bot.send_message(message.chat.id, sem_dict)
+        #! draw graphs
         plot = do_graph(sem_dict)
         bot.send_photo(message.chat.id, plot, reply_to_message_id=message.message_id)
 
@@ -186,4 +189,7 @@ def webhook():
     MAIN
 '''
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+    import os
+    app.debug = True
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
