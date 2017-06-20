@@ -21,6 +21,7 @@ bot = telebot.TeleBot(TOKEN, threaded=False)
 '''
 bot.remove_webhook()
 bot.set_webhook(url='https://rusvectoresgraph.herokuapp.com/bot')
+WEBHOOK_URL_PATH = 'https://rusvectoresgraph.herokuapp.com/bot'
 
 
 '''
@@ -116,7 +117,7 @@ def do_graph(semantic_dict):
     nx.draw_networkx_edges(gr, pos, edge_color='black', width=edges)
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
-    return plt, word_distance
+    return plt, distances
 
 
 '''
@@ -176,7 +177,7 @@ def index():
 
 
 # webhook handling
-@app.route(WEBHOOK_URL_PATH, methods=['POST'])
+@app.route("/bot", methods=['POST'])
 def webhook():
     if flask.request.headers.get('content-type') == 'application/json':
         json_string = flask.request.get_data().decode('utf-8')
