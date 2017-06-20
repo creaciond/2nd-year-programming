@@ -14,16 +14,19 @@ import matplotlib.pyplot as plt
 # creating a bot
 TOKEN = os.environ['TOKEN']
 bot = telebot.TeleBot(TOKEN, threaded=False)
-app = flask.Flask(__name__)
 
 
 '''
     WEBHOOKS
 '''
-# webhook URLs and tokens — in conf.py
 bot.remove_webhook()
-bot.set_webhook(url="https://https://lit-beyond-69051.herokuapp.com/bot")
+bot.set_webhook(url='https://rusvectoresgraph.herokuapp.com/bot')
 
+
+'''
+    FLASK
+'''
+app = flask.Flask(__name__)
 
 '''
     WORK WITH INPUT
