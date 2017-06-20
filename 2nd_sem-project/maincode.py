@@ -73,27 +73,26 @@ def get_closeness(words):
     return semantic_dict
 
 
-def print_error_input(message):
-    error_code, words = check_message(message)
+def print_error_input(line, message_chat_id):
+    error_code, words = check_message(line)
     '''
         0 - ok
         1 - length of input
         2 - not in Russian
     '''
     if error_code == 1:
-        bot.send_message(message.chat.id, "Кажется, вы ввели два слова или меньше. " +
+        bot.send_message(message_chat_id, "Кажется, вы ввели два слова или меньше. " +
                          "Наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
     elif error_code == 2:
-        bot.send_message(message.chat.id, "Кажется, в вашей строке есть символы на латинице. "
+        bot.send_message(message_chat_id, "Кажется, в вашей строке есть символы на латинице. "
                          + "Бот умеет работать только с кириллицей. "
                          + "Не расстраивайтесь, наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
     else:
-        bot.send_message(message.chat.id, "Всё хорошо, начинаю работать!")
+        bot.send_message(message_chat_id, "Всё хорошо, начинаю работать!")
     return error_code, words
 
 
 def do_graph(semantic_dict):
-    distances = []
     gr = nx.Graph()
     # dictionary parsing
     words = list(semantic_dict.keys())
@@ -106,8 +105,6 @@ def do_graph(semantic_dict):
                 buf = 1
             else:
                 gr.add_edge(word, words[i], weight=values[i])
-                word_distance = (word, words[i], values[i])
-                distances.append(word_distance)
             i += 1
     # edge thickness
     edges = [d['weight'] for (u, v, d) in gr.edges(data=True)]
@@ -117,8 +114,25 @@ def do_graph(semantic_dict):
     nx.draw_networkx_edges(gr, pos, edge_color='black', width=edges)
     nx.draw_networkx_labels(gr, pos, font_size=10, font_family='Arial')
     plt.axis('off')
-    return plt, distances
+    return plt
 
+
+def do_distances(semantic_dict):
+    distances = []
+    words = list(semantic_dict.keys())
+    for word in words:
+        i = 0
+        values = semantic_dict[word]
+        while i < len(values):
+            if words[i] == word:
+                # this thing is kind of useless, but still
+                buf = 1
+            else:
+                word_distance = (word, words[i], values[i])
+                distances.append(word_distance)
+            i += 1
+    message_dist = '\n'.join(distances)
+    return message_dist
 
 '''
     BOT MESSAGES
@@ -156,19 +170,18 @@ def tell_commands(message):
 # messages with words
 @bot.message_handler(commands='/get_graph')
 def do_stuff(message):
-    input = message.strip()[1:]
+    input = message.text.split()[1:]
     # check input
-    error_code, words = print_error_input(input)
+    error_code, words = print_error_input(input, message.chat.id)
     if error_code == 0:
         #! do semantic closeness
         sem_dict = get_closeness(words)
         # bot.send_message(message.chat.id, sem_dict)
         #! draw graphs
-        plot, distances = do_graph(sem_dict)
-        dist_to_show = []
-        for distance in distances:
-            dist_to_show.append('%s — %s: %f' % (distance[0], distance[1], distance[2]))
-        bot.send_message(message.chat.id, '\n'.join(dist_to_show), reply_to_message_id=message.message,id)
+        plot = do_graph(sem_dict)
+        #! do distance
+        message_distances = do_distances(sem_dict)
+        bot.send_message(message.chat.id, message_distances, reply_to_message_id=message.message.id)
         bot.send_photo(message.chat.id, plot, reply_to_message_id=message.message_id)
 
 '''
