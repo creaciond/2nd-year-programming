@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # bot
 import telebot
+from telebot import types
 import flask
 import os
 # code itself
@@ -32,24 +33,37 @@ app = flask.Flask(__name__)
 '''
     WORK WITH INPUT
 '''
-def check_message(words):
-    alphabet = set(list('абвгдеёжзийклмнопрстуфхцчшщъыьэюя '))
-    words = [str(word).strip('.,?!\(\)\[\]\'\"\\').lower() for word in words]
+def check_message(message):
+    words_line = message.text.lower()
+    alphabet = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя '
     error_code = 0
     # check for number of words
-    if len(words) <= 2:
+    if len(words_line.split()) <= 3:
         error_code = 1
     # check for characters
     i = 0
-    while i <= len(words):
-        if words[i] not in alphabet:
+    while i <= len(words_line):
+        if words_line[i] not in alphabet:
             error_code = 2
             break
         else:
             i += 1
     # if everything's good so far, no error
-    return error_code, words
+    return error_code
 
+
+def print_error(message):
+    error_code = check_message(message)
+    if error_code == 1:
+        bot.send_message(message.chat.id, "Кажется, вы ввели два слова или меньше. " +
+                         "Наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
+    elif error_code == 2:
+        bot.send_message(message.chat.id, "Кажется, в вашей строке есть символы на латинице. "
+                         + "Бот умеет работать только с кириллицей. "
+                         + "Не расстраивайтесь, наберите /help, чтобы посмотреть пример ввода, "
+                         + "и попробуйте ещё раз!")
+    else:
+        bot.send_message(message.chat.id, "Всё хорошо, начинаю работать!")
 
 # gives semantic closeness between pairs of words
 def get_closeness(words):
@@ -71,25 +85,6 @@ def get_closeness(words):
                 # todo later: send a message that no closeness was found for the pair
                 response = {}
     return semantic_dict
-
-
-def print_error_input(line, message_chat_id):
-    error_code, words = check_message(line)
-    '''
-        0 - ok
-        1 - length of input
-        2 - not in Russian
-    '''
-    if error_code == 1:
-        bot.send_message(message_chat_id, "Кажется, вы ввели два слова или меньше. " +
-                         "Наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
-    elif error_code == 2:
-        bot.send_message(message_chat_id, "Кажется, в вашей строке есть символы на латинице. "
-                         + "Бот умеет работать только с кириллицей. "
-                         + "Не расстраивайтесь, наберите /help, чтобы посмотреть пример ввода, и попробуйте ещё раз!")
-    else:
-        bot.send_message(message_chat_id, "Всё хорошо, начинаю работать!")
-    return error_code, words
 
 
 def do_graph(semantic_dict):
@@ -134,55 +129,66 @@ def do_distances(semantic_dict):
     message_dist = '\n'.join(distances)
     return message_dist
 
+
+# main
+def assemble(message):
+    if message.text != '':
+        msg = bot.send_message(message.chat.id, "Введите слова для построения графа (не менее 2),"
+            + " разделённые пробелом")
+        bot.register_next_step_handler(msg, print_error)
+        if check_message(msg) == 0:
+            words = [word.strip('.,?!') for word in msg.text.lower().split()]
+            # 1. do semantic closeness
+            sem_dict = get_closeness(words)
+            # 2. do distance
+            message_distances = do_distances(sem_dict)
+            # 3. draw graphs
+            plot = do_graph(sem_dict)
+            # 4. show results
+            bot.send_message(msg.chat.id, message_distances)
+            bot.send_photo(msg.chat.id, plot)
+
+
 '''
     BOT MESSAGES
 '''
 # send_welcome() function for /start или /help
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
+    keyboard = types.ReplyKeyboardMarkup(row_width=2)
+    btn1 = types.KeyboardButton('/get_graph')
+    btn2 = types.KeyboardButton('/help')
+    btn3 = types.KeyboardButton('/about')
+    btn4 = types.KeyboardButton('/commands')
+    keyboard.add(btn1, btn2, btn3, btn4)
     bot.send_message(message.chat.id, "Привет! Этот бот умеет вычислять семантическую близость двух слов и"
                      + " строить граф, где отображается близость этих слов. \n"
-                     + "Для того, чтобы получить граф, введите команду /get_graph и слова через пробел "
-                     + "(например, \"/get_graph кот кошка играть\"). "
+                     + "Для того, чтобы получить граф, введите команду /get_graph, а затем — слова через пробел "
+                     + "(например, \"/get_graph (enter) кот кошка играть\"). "
                      + "Оптимальное количество — от 7 до 20 слов. \n"
-                     + "Чтобы увидеть весь список комманд, наберите /commands.")
+                     + "Чтобы увидеть весь список комманд, наберите /commands.", reply_markup=keyboard)
 
 
-# /about
-@bot.message_handler(commands='/about')
+@bot.message_handler(commands=['about'])
 def tell_about_yourself(message):
     bot.send_message(message.chat.id, "Я бот, который может вычислять семантическую близость двух слов! "
                      + "Меня сделала Даша Максимова, ей можно написать: @zghvebi "
                      + "или на почту: daria.maximova.m@gmail.com")
 
 
-# /commands
-@bot.message_handler(commands='/commands')
+@bot.message_handler(commands=['commands'])
 def tell_commands(message):
     bot.send_message(message.chat.id, "Вот список комманд: \n"
                      + "/help — выводит подсказку про бота и пример ввода,\n"
                      + "/about — про бота и его создателя,\n"
                      + "/commands — список команд для бота (вы только что использовали это команду),\n"
-                     + "/get_graph — получение графа для введённых слов. Слова нужно вводить через пробел после команды,\n"
-                     + "/end — закончить общение с ботом. Чтобы начать его снова, введите /start.")
+                     + "/get_graph — получение графа для введённых слов. Слова нужно вводить через "
+                     + "пробел.")
 
 
-# messages with words
-@bot.message_handler(commands='/get_graph')
-def do_stuff(message):
-    input = message.text.split()[1:]
-    # check input
-    error_code, words = print_error_input(input, message.chat.id)
-    if error_code == 0:
-        #! do semantic closeness
-        sem_dict = get_closeness(words)
-        # bot.send_message(message.chat.id, sem_dict)
-        #! draw graphs
-        plot = do_graph(sem_dict)
-        #! do distance
-        message_distances = do_distances(sem_dict)
-        bot.send_message(message.chat.id, message_distances, reply_to_message_id=message.message.id)
-        bot.send_photo(message.chat.id, plot, reply_to_message_id=message.message_id)
+@bot.message_handler(commands=['get_graph'])
+def get_graph(message):
+    bot.register_next_step_handler(message, assemble)
 
 '''
     FLASK
